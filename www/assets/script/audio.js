@@ -46,16 +46,40 @@ function noise(dur, vol = 0.2) {
 }
 
 const SFX = {
+    // ─── Sons de base ───
     flap:     () => { beep(600, 0.06, 'square', 0.18, 900); },
     score:    () => { beep(880, 0.06, 'square', 0.2); beep(1100, 0.08, 'square', 0.2); },
     hit:      () => { noise(0.15, 0.5); beep(150, 0.15, 'sawtooth', 0.4, 80); },
     die:      () => { [440, 330, 220, 110].forEach((f, i) => setTimeout(() => beep(f, 0.18, 'sawtooth', 0.35), i * 120)); },
     ready:    () => { beep(660, 0.08, 'square', 0.15); beep(880, 0.1, 'square', 0.15); },
-};
 
-// Sons supplémentaires mode Mario
-SFX.fbBounce = () => { beep(300, 0.05, 'square', 0.1, 200); };
-SFX.marioLaugh = () => {
-    [330, 392, 330, 392, 523].forEach((f, i) =>
-        setTimeout(() => beep(f, 0.1, 'square', 0.15), i * 100));
+    // ─── Sons mode Mario ───
+    fbBounce:   () => { beep(300, 0.05, 'square', 0.1, 200); },
+    marioLaugh: () => {
+        [330, 392, 330, 392, 523].forEach((f, i) =>
+            setTimeout(() => beep(f, 0.1, 'square', 0.15), i * 100));
+    },
+
+    // ─── Sons progression ───
+    newRecord: () => {
+        [523, 659, 784, 1047, 1318].forEach((f, i) =>
+            setTimeout(() => beep(f, 0.12, 'square', 0.25), i * 80));
+    },
+    levelUp: () => {
+        [392, 523, 659, 784, 1047].forEach((f, i) =>
+            setTimeout(() => beep(f, 0.15, 'square', 0.3), i * 90));
+        setTimeout(() => beep(1047, 0.3, 'square', 0.35), 500);
+    },
+    achievement: () => {
+        beep(880, 0.08, 'square', 0.2);
+        setTimeout(() => beep(1100, 0.08, 'square', 0.2), 80);
+        setTimeout(() => beep(1320, 0.15, 'square', 0.25), 160);
+    },
+
+    // ─── Combo Mario ───
+    combo: (count) => {
+        const freq = Math.min(400 + count * 100, 1200);
+        beep(freq, 0.06, 'square', 0.2);
+        setTimeout(() => beep(freq * 1.25, 0.08, 'square', 0.2), 60);
+    },
 };

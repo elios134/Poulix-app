@@ -11,12 +11,34 @@
     <canvas id="gameCanvas"></canvas>
     <div id="scanlines"></div>
 
+    <!-- Score en jeu -->
     <div id="score-display-wrap" class="screen">
         <div id="score-display">0</div>
     </div>
 
+    <!-- Combo display -->
+    <div id="combo-display"></div>
+
+    <!-- Bouton pause -->
     <div id="pause-btn-wrap" class="screen">
         <button id="btn-pause">⏸</button>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast" id="toast-levelup">
+        <div class="toast-icon">⬆️</div>
+        <div class="toast-content">
+            <div class="toast-title"></div>
+            <div class="toast-sub"></div>
+        </div>
+    </div>
+    <div class="toast" id="toast-achievement">
+        <div class="toast-icon">🏆</div>
+        <div class="toast-content">
+            <div class="toast-label"></div>
+            <div class="toast-title"></div>
+            <div class="toast-sub"></div>
+        </div>
     </div>
 
     <!-- READY -->
@@ -24,20 +46,34 @@
         <div class="ready-hint">APPUYER POUR VOLER !</div>
     </div>
 
-    <!-- MENU PRINCIPAL -->
+    <!-- ═══ MENU PRINCIPAL ═══ -->
     <div class="screen visible" id="mainmenu-screen">
         <div class="screen-box">
             <div class="game-title">POULPIX</div>
             <div class="title-sub">— PIXEL EDITION —</div>
+
+            <div class="menu-prog-bar">
+                <span id="menu-level">NV.1 Poussin</span>
+                <div class="xp-bar-mini">
+                    <div class="xp-bar-fill" id="menu-xp-bar" style="width:0%"></div>
+                </div>
+            </div>
+
             <div class="coins-bar">🪙 <span class="coin-count">0</span></div>
+
             <div class="menu-btns">
                 <button class="retro-btn" id="btn-play">► JOUER</button>
+                <button class="retro-btn cyan" id="btn-progression" style="position:relative">
+                    📊 PROGRESSION
+                    <span class="daily-dot" id="daily-dot" style="display:none"></span>
+                </button>
+                <button class="retro-btn cyan" id="btn-leaderboard">🏆 CLASSEMENT</button>
                 <button class="retro-btn yellow" id="btn-shop">🪙 BOUTIQUE</button>
             </div>
         </div>
     </div>
 
-    <!-- SÉLECTION MODE -->
+    <!-- ═══ SÉLECTION MODE ═══ -->
     <div class="screen" id="modeselect-screen">
         <div class="screen-box">
             <div class="section-title">CHOISIR UN MODE</div>
@@ -58,7 +94,7 @@
         </div>
     </div>
 
-    <!-- BOUTIQUE -->
+    <!-- ═══ BOUTIQUE ═══ -->
     <div class="screen" id="shop-screen">
         <div class="screen-box shop-box">
             <div class="section-title">BOUTIQUE SKINS</div>
@@ -68,7 +104,72 @@
         </div>
     </div>
 
-    <!-- PAUSE -->
+    <!-- ═══ PROGRESSION ═══ -->
+    <div class="screen" id="progression-screen">
+        <div class="screen-box prog-box">
+            <div class="section-title">PROGRESSION</div>
+
+            <div class="prog-level-block">
+                <div class="prog-level-row">
+                    <span id="prog-level">NIVEAU 1</span>
+                    <span id="prog-title" class="prog-title-text">Poussin</span>
+                </div>
+                <div class="xp-bar">
+                    <div class="xp-bar-fill" id="prog-bar-fill" style="width:0%"></div>
+                </div>
+                <div id="prog-xp" class="prog-xp-text">0 / 100 XP</div>
+            </div>
+
+            <div class="prog-stats">
+                <div class="stat-item">
+                    <div class="stat-val" id="prog-games">0</div>
+                    <div class="stat-lbl">PARTIES</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="prog-best-c">0</div>
+                    <div class="stat-lbl">BEST CLASSIQUE</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="prog-best-m">0</div>
+                    <div class="stat-lbl">BEST MARIO</div>
+                </div>
+            </div>
+
+            <div class="daily-block">
+                <div class="daily-header">
+                    <span class="daily-label">DÉFI DU JOUR</span>
+                    <span class="daily-reward-badge" id="daily-reward">🪙 0</span>
+                </div>
+                <div id="daily-title" class="daily-title">—</div>
+                <div id="daily-desc" class="daily-desc">—</div>
+                <div class="xp-bar">
+                    <div class="xp-bar-fill green" id="daily-bar-fill" style="width:0%"></div>
+                </div>
+                <div id="daily-progress" class="daily-progress">0 / 0</div>
+            </div>
+
+            <div class="section-title" style="margin-top:16px;margin-bottom:10px">SUCCÈS</div>
+            <div id="ach-grid" class="ach-grid"></div>
+
+            <button class="retro-btn small" id="btn-back-prog" style="margin-top:16px">← RETOUR</button>
+        </div>
+    </div>
+
+    <!-- ═══ CLASSEMENT ═══ -->
+    <div class="screen" id="leaderboard-screen">
+        <div class="screen-box lb-box">
+            <div class="section-title">CLASSEMENT LOCAL</div>
+            <div class="lb-tabs">
+                <button class="lb-tab active" id="btn-lb-classic">🐔 CLASSIQUE</button>
+                <button class="lb-tab" id="btn-lb-mario">🍄 MARIO</button>
+            </div>
+            <div id="lb-mode-title" class="lb-mode-title">🐔 CLASSIQUE</div>
+            <div id="lb-list" class="lb-list"></div>
+            <button class="retro-btn small" id="btn-back-lb" style="margin-top:16px">← RETOUR</button>
+        </div>
+    </div>
+
+    <!-- ═══ PAUSE ═══ -->
     <div class="screen" id="pause-screen">
         <div class="screen-box pause-box">
             <div class="pause-title">PAUSE</div>
@@ -79,11 +180,12 @@
         </div>
     </div>
 
-    <!-- GAME OVER -->
+    <!-- ═══ GAME OVER ═══ -->
     <div class="screen" id="gameover-screen">
         <div class="screen-box">
             <div class="gameover-title">GAME OVER</div>
             <span class="medal" id="medal">💀</span>
+
             <div class="score-row">
                 <div class="score-col">
                     <div class="score-label">SCORE</div>
@@ -94,10 +196,16 @@
                     <div class="score-val best-val" id="go-best">0</div>
                 </div>
             </div>
+
+            <div class="go-extras">
+                <span class="go-xp" id="go-xp"></span>
+            </div>
+
             <div class="earned-row">
                 <span class="earned-val" id="go-earned">+0 🪙</span>
                 <span class="earned-mult" id="go-mult">× 1</span>
             </div>
+
             <div class="go-btns">
                 <button class="retro-btn ad-btn green" id="btn-revive">▶ REVIVRE (PUB)</button>
                 <button class="retro-btn ad-btn" id="btn-double">▶ DOUBLER (PUB)</button>
@@ -107,12 +215,16 @@
         </div>
     </div>
 
+    <!-- Ordre de chargement important -->
     <script src="assets/script/audio.js"></script>
     <script src="assets/script/sprites.js"></script>
     <script src="assets/script/particles.js"></script>
     <script src="assets/script/skins.js"></script>
     <script src="assets/script/mario.js"></script>
     <script src="assets/script/ads.js"></script>
+    <script src="assets/script/powerups.js"></script>
+    <script src="assets/script/progression.js"></script>
+    <script src="assets/script/leaderboard.js"></script>
     <script src="assets/script/game.js"></script>
 </body>
 </html>
