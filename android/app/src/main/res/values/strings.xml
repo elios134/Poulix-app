@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Poulpix</string>
+    <string name="title_activity_main">Poulpix</string>
+    <string name="package_name">com.poulpix.app</string>
+    <string name="custom_url_scheme">com.poulpix.app</string>
+</resources>

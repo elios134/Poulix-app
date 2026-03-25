@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Poulpix</title>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="scanlines"></div>
+
+    <div id="score-display-wrap" class="screen">
+        <div id="score-display">0</div>
+    </div>
+
+    <div id="pause-btn-wrap" class="screen">
+        <button id="btn-pause">⏸</button>
+    </div>
+
+    <!-- READY -->
+    <div class="screen" id="ready-screen">
+        <div class="ready-hint">APPUYER POUR VOLER !</div>
+    </div>
+
+    <!-- MENU PRINCIPAL -->
+    <div class="screen visible" id="mainmenu-screen">
+        <div class="screen-box">
+            <div class="game-title">POULPIX</div>
+            <div class="title-sub">— PIXEL EDITION —</div>
+            <div class="coins-bar">🪙 <span class="coin-count">0</span></div>
+            <div class="menu-btns">
+                <button class="retro-btn" id="btn-play">► JOUER</button>
+                <button class="retro-btn yellow" id="btn-shop">🪙 BOUTIQUE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SÉLECTION MODE -->
+    <div class="screen" id="modeselect-screen">
+        <div class="screen-box">
+            <div class="section-title">CHOISIR UN MODE</div>
+            <div class="mode-cards">
+                <button class="mode-card" id="btn-classic">
+                    <div class="mode-emoji">🐔</div>
+                    <div class="mode-name">CLASSIQUE</div>
+                    <div class="mode-desc">Évite les tuyaux<br>🪙 ×1 par point</div>
+                </button>
+                <button class="mode-card mode-mario" id="btn-mario">
+                    <div class="mode-emoji">🍄</div>
+                    <div class="mode-name">BOSS MARIO</div>
+                    <div class="mode-desc">Esquive les boules de feu<br>🪙 ×2 par esquive</div>
+                    <div class="mode-badge">×2</div>
+                </button>
+            </div>
+            <button class="retro-btn small" id="btn-back-mode">← RETOUR</button>
+        </div>
+    </div>
+
+    <!-- BOUTIQUE -->
+    <div class="screen" id="shop-screen">
+        <div class="screen-box shop-box">
+            <div class="section-title">BOUTIQUE SKINS</div>
+            <div class="coins-bar shop-coins">🪙 <span class="coin-count">0</span></div>
+            <div id="shop-grid"></div>
+            <button class="retro-btn small" id="btn-back-shop">← RETOUR</button>
+        </div>
+    </div>
+
+    <!-- PAUSE -->
+    <div class="screen" id="pause-screen">
+        <div class="screen-box pause-box">
+            <div class="pause-title">PAUSE</div>
+            <div class="pause-btns">
+                <button class="retro-btn" id="btn-resume">► REPRENDRE</button>
+                <button class="retro-btn small red" id="btn-pause-menu">⌂ MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div class="screen" id="gameover-screen">
+        <div class="screen-box">
+            <div class="gameover-title">GAME OVER</div>
+            <span class="medal" id="medal">💀</span>
+            <div class="score-row">
+                <div class="score-col">
+                    <div class="score-label">SCORE</div>
+                    <div class="score-val" id="go-score">0</div>
+                </div>
+                <div class="score-col">
+                    <div class="score-label">MEILLEUR</div>
+                    <div class="score-val best-val" id="go-best">0</div>
+                </div>
+            </div>
+            <div class="earned-row">
+                <span class="earned-val" id="go-earned">+0 🪙</span>
+                <span class="earned-mult" id="go-mult">× 1</span>
+            </div>
+            <div class="go-btns">
+                <button class="retro-btn ad-btn green" id="btn-revive">▶ REVIVRE (PUB)</button>
+                <button class="retro-btn ad-btn" id="btn-double">▶ DOUBLER (PUB)</button>
+                <button class="retro-btn" id="btn-replay">► REJOUER</button>
+                <button class="retro-btn small" id="btn-menu">⌂ MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/script/audio.js"></script>
+    <script src="assets/script/sprites.js"></script>
+    <script src="assets/script/particles.js"></script>
+    <script src="assets/script/skins.js"></script>
+    <script src="assets/script/mario.js"></script>
+    <script src="assets/script/ads.js"></script>
+    <script src="assets/script/game.js"></script>
+</body>
+</html>
