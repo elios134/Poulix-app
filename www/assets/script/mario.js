@@ -4,10 +4,10 @@
 
 // ─── Phases du boss ───
 const MARIO_PHASES = [
-    { minScore: 0,  color: '#cc2200', label: 'NORMAL',    shootInterval: 1800, burstCount: 1, spreadAngle: 0    },
-    { minScore: 10, color: '#cc6600', label: 'ÉNERVÉ',    shootInterval: 1200, burstCount: 1, spreadAngle: 0.3  },
-    { minScore: 25, color: '#cc0066', label: 'EN COLÈRE', shootInterval: 900,  burstCount: 2, spreadAngle: 0.4  },
-    { minScore: 40, color: '#6600cc', label: 'RAGE',      shootInterval: 700,  burstCount: 3, spreadAngle: 0.45 },
+    { minScore: 0,  color: '#cc2200', label: 'NORMAL',    shootInterval: 1200, burstCount: 1, spreadAngle: 0    },
+    { minScore: 10, color: '#cc6600', label: 'ÉNERVÉ',    shootInterval: 950, burstCount: 1, spreadAngle: 0.3  },
+    { minScore: 25, color: '#cc0066', label: 'EN COLÈRE', shootInterval: 750,  burstCount: 2, spreadAngle: 0.4  },
+    { minScore: 40, color: '#6600cc', label: 'RAGE',      shootInterval: 500,  burstCount: 3, spreadAngle: 0.45 },
 ];
 
 function getMarioPhase(score) {
@@ -34,16 +34,7 @@ const MARIO_SPR = [
     [0, 4, 4, 4, 0, 0, 4, 4, 4, 0],
 ];
 
-// Couleurs dynamiques selon la phase
-function getMarioPal(score) {
-    const phase = getMarioPhase(score);
-    return {
-        1: '#f4a460',
-        2: phase.color,
-        3: '#8b4513',
-        4: '#0066cc',
-    };
-}
+const MARIO_PAL = { 1: '#f4a460', 2: '#cc2200', 3: '#8b4513', 4: '#0066cc' };
 
 const MARIO_PX = 5;
 const MARIO_W  = 10 * MARIO_PX;
@@ -55,13 +46,12 @@ const PIPE_MARIO_CAP = 16;
 const PIPE_MARGIN_TOP    = 120;
 const PIPE_MARGIN_BOTTOM = 120;
 
-let marioPipe = { y: 0, vy: 1.2, minY: 0, maxY: 0 };
-
-// Aura de rage autour de Mario
+let marioPipe     = { y: 0, vy: 1.2, minY: 0, maxY: 0 };
 let marioRageAura = 0;
 
 function initMarioPipe(canvasH) {
-    const groundY  = canvasH - (typeof GROUND_H !== 'undefined' ? GROUND_H : 80);
+    const GH       = typeof GROUND_H !== 'undefined' ? GROUND_H : 80;
+    const groundY  = canvasH - GH;
     marioPipe.minY = PIPE_MARGIN_TOP;
     marioPipe.maxY = groundY - PIPE_MARGIN_BOTTOM;
     marioPipe.y    = (marioPipe.minY + marioPipe.maxY) / 2;
@@ -70,23 +60,20 @@ function initMarioPipe(canvasH) {
 }
 
 function updateMarioPipe(dt, score) {
-    // Vitesse du tuyau augmente avec la phase
-    const phase = getMarioPhase(score);
+    const phase    = getMarioPhase(score);
     const phaseIdx = MARIO_PHASES.indexOf(phase);
-    const spd = 1.2 + score * 0.04 + phaseIdx * 0.3;
-    marioPipe.y += marioPipe.vy * spd;
+    const spd      = 1.2 + score * 0.04 + phaseIdx * 0.3;
+    marioPipe.y   += marioPipe.vy * spd;
     if (marioPipe.y <= marioPipe.minY) { marioPipe.y = marioPipe.minY; marioPipe.vy =  Math.abs(marioPipe.vy); }
     if (marioPipe.y >= marioPipe.maxY) { marioPipe.y = marioPipe.maxY; marioPipe.vy = -Math.abs(marioPipe.vy); }
-
-    // Aura de rage
     marioRageAura = (marioRageAura + 0.08) % (Math.PI * 2);
 }
 
-function drawMario(ctx, x, y, px, pal) {
+function drawMario(ctx, x, y, px) {
     MARIO_SPR.forEach((row, ry) => {
         row.forEach((cell, rx) => {
             if (!cell) return;
-            ctx.fillStyle = pal[cell];
+            ctx.fillStyle = MARIO_PAL[cell];
             ctx.fillRect(Math.floor(x + rx * px), Math.floor(y + ry * px), px, px);
         });
     });
@@ -101,7 +88,7 @@ function getMarioY() {
 }
 
 // ─────────────────────────────────────────────
-// FOND MARIO
+// FOND MARIO — couleur du ciel change selon la phase
 // ─────────────────────────────────────────────
 
 const CLOUDS = [
@@ -125,16 +112,29 @@ const BRICKS = [
     { xp: 0.60, yp: 0.42 },
 ];
 
-function drawMarioBackground(ctx, canvasW, canvasH, offset) {
-    const GH = typeof GROUND_H !== 'undefined' ? GROUND_H : 80;
-    const groundY = canvasH - GH;
+// Couleurs du ciel par phase (index 0→3)
+const PHASE_SKIES = [
+    { top: '#5cc8f8', bot: '#aeeaff' }, // Phase 1 — bleu normal
+    { top: '#f8a020', bot: '#ffd080' }, // Phase 2 — orange
+    { top: '#c030c0', bot: '#f090f0' }, // Phase 3 — rose/violet
+    { top: '#1a0a2e', bot: '#3a1060' }, // Phase 4 — noir/violet sombre
+];
 
+function drawMarioBackground(ctx, canvasW, canvasH, offset, score) {
+    const GH       = typeof GROUND_H !== 'undefined' ? GROUND_H : 80;
+    const groundY  = canvasH - GH;
+    const phase    = getMarioPhase(score || 0);
+    const phaseIdx = MARIO_PHASES.indexOf(phase);
+    const sky      = PHASE_SKIES[phaseIdx] || PHASE_SKIES[0];
+
+    // Ciel — couleur selon la phase
     const grad = ctx.createLinearGradient(0, 0, 0, groundY);
-    grad.addColorStop(0, '#5cc8f8');
-    grad.addColorStop(1, '#aeeaff');
+    grad.addColorStop(0, sky.top);
+    grad.addColorStop(1, sky.bot);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvasW, groundY);
 
+    // Collines
     HILLS.forEach(h => {
         const cx = ((h.xp * canvasW - offset * 0.2) % (canvasW + 200)) - 100;
         const r  = h.rp * canvasW;
@@ -147,17 +147,19 @@ function drawMarioBackground(ctx, canvasW, canvasH, offset) {
         ctx.beginPath(); ctx.arc(cx + r * 0.1, groundY - r * 0.65, r * 0.05, 0, Math.PI * 2); ctx.fill();
     });
 
+    // Nuages
     CLOUDS.forEach(c => {
         const cx = ((c.xp * canvasW - offset * 0.3) % (canvasW + 200) + canvasW + 200) % (canvasW + 200) - 100;
-        const cy = c.yp * groundY;
-        drawCloud(ctx, cx, cy, c.s * 28);
+        drawCloud(ctx, cx, c.yp * groundY, c.s * 28);
     });
 
+    // Briques
     BRICKS.forEach(b => {
         const bx = ((b.xp * canvasW - offset * 0.6) % (canvasW + 100) + canvasW + 100) % (canvasW + 100) - 50;
         drawBrickBlock(ctx, bx, b.yp * groundY);
     });
 
+    // Sol
     ctx.fillStyle = '#6ac832';
     ctx.fillRect(0, groundY, canvasW, GH);
     ctx.fillStyle = '#4a9818';
@@ -187,8 +189,9 @@ function drawBrickBlock(ctx, x, y) {
     const bw = 28, bh = 28;
     ctx.fillStyle = '#c84c0c'; ctx.fillRect(x, y, bw, bh);
     ctx.fillStyle = '#e86010'; ctx.fillRect(x + 2, y + 2, bw - 4, 10); ctx.fillRect(x + 2, y + 2, 10, bh - 4);
-    ctx.fillStyle = '#8c3008'; ctx.fillRect(x + bw - 3, y, 3, bh); ctx.fillRect(x, y + bh - 3, bw, 3);
     ctx.fillStyle = '#8c3008';
+    ctx.fillRect(x + bw - 3, y, 3, bh);
+    ctx.fillRect(x, y + bh - 3, bw, 3);
     ctx.fillRect(x, y + bh / 2, bw, 2);
     ctx.fillRect(x + bw / 2, y, 2, bh / 2);
     ctx.fillRect(x + bw / 4, y + bh / 2, 2, bh / 2);
@@ -196,26 +199,16 @@ function drawBrickBlock(ctx, x, y) {
 }
 
 // ─────────────────────────────────────────────
-// TUYAU + MARIO
+// TUYAU + MARIO (sans aura)
 // ─────────────────────────────────────────────
 
 function drawMarioPipe(ctx, canvasW, canvasH, score) {
-    const GH       = typeof GROUND_H !== 'undefined' ? GROUND_H : 80;
-    const groundY  = canvasH - GH;
-    const pipeX    = canvasW - PIPE_MARIO_W - 10;
-    const pipeTop  = marioPipe.y;
+    const GH      = typeof GROUND_H !== 'undefined' ? GROUND_H : 80;
+    const groundY = canvasH - GH;
+    const pipeX   = canvasW - PIPE_MARIO_W - 10;
+    const pipeTop = marioPipe.y;
     const phase    = getMarioPhase(score || 0);
     const phaseIdx = MARIO_PHASES.indexOf(phase);
-
-    // Aura de rage (phases 2+)
-    if (phaseIdx >= 1) {
-        ctx.globalAlpha = 0.15 + 0.05 * phaseIdx;
-        ctx.fillStyle   = phase.color;
-        const auraSize  = 10 + phaseIdx * 8 + Math.sin(marioRageAura) * 5;
-        ctx.fillRect(pipeX - auraSize, pipeTop - MARIO_H - auraSize,
-                     PIPE_MARIO_W + auraSize * 2, MARIO_H + auraSize * 2);
-        ctx.globalAlpha = 1;
-    }
 
     // Corps tuyau
     ctx.fillStyle = '#e8c800';
@@ -233,22 +226,20 @@ function drawMarioPipe(ctx, canvasW, canvasH, score) {
     ctx.fillRect(pipeX + PIPE_MARIO_W - 3, pipeTop, 3, PIPE_MARIO_CAP);
 
     // Mario (miroir vers la gauche)
-    const mx  = pipeX + (PIPE_MARIO_W - MARIO_W) / 2;
-    const my  = pipeTop - MARIO_H;
-    const pal = getMarioPal(score || 0);
+    const mx = pipeX + (PIPE_MARIO_W - MARIO_W) / 2;
+    const my = pipeTop - MARIO_H;
     ctx.save();
     ctx.translate(mx + MARIO_W, my);
     ctx.scale(-1, 1);
-    drawMario(ctx, 0, 0, MARIO_PX, pal);
+    drawMario(ctx, 0, 0, MARIO_PX);
     ctx.restore();
 
-    // Indicateur de phase
+    // Label de phase (phases 2+)
     if (phaseIdx >= 1) {
         ctx.font      = `bold 9px "Courier New", monospace`;
         ctx.fillStyle = phase.color;
         ctx.textAlign = 'center';
-        const label   = phase.label + ' !';
-        ctx.fillText(label, pipeX + PIPE_MARIO_W / 2, pipeTop - MARIO_H - 6);
+        ctx.fillText(phase.label + ' !', pipeX + PIPE_MARIO_W / 2, pipeTop - MARIO_H - 6);
     }
 }
 
@@ -285,20 +276,8 @@ function spawnFireball(canvasW, score, vyOverride) {
     const marioY = getMarioY() + MARIO_H / 2;
     const phase  = getMarioPhase(score);
     const spd    = 4 + score * 0.08 + MARIO_PHASES.indexOf(phase) * 0.5;
-
-    // Direction : droit ou avec angle selon la phase
-    const vy = vyOverride !== undefined
-        ? vyOverride
-        : (Math.random() - 0.3) * 2.5;
-
-    fireballs.push({
-        id:  fbIdCounter++,
-        x:   marioX - FB_W,
-        y:   marioY - FB_H / 2,
-        vy,
-        rot: 0,
-        spd,
-    });
+    const vy     = vyOverride !== undefined ? vyOverride : (Math.random() - 0.3) * 2.5;
+    fireballs.push({ id: fbIdCounter++, x: marioX - FB_W, y: marioY - FB_H / 2, vy, rot: 0, spd });
 }
 
 function updateFireballs(dt, score, canvasW, canvasH, bird, onDodge) {
@@ -308,19 +287,12 @@ function updateFireballs(dt, score, canvasW, canvasH, bird, onDodge) {
     fbTimer += dt;
     if (fbTimer >= interval) {
         fbTimer = 0;
-        const GH = typeof GROUND_H !== 'undefined' ? GROUND_H : 80;
-
         if (phase.burstCount === 1) {
-            // Phase 1 & 2 — une seule boule
             spawnFireball(canvasW, score);
-
         } else if (phase.burstCount === 2) {
-            // Phase 3 — deux boules en éventail
             spawnFireball(canvasW, score, -phase.spreadAngle);
             spawnFireball(canvasW, score,  phase.spreadAngle);
-
         } else {
-            // Phase 4 — trois boules : haut, droit, bas
             spawnFireball(canvasW, score, -phase.spreadAngle);
             spawnFireball(canvasW, score,  0);
             spawnFireball(canvasW, score,  phase.spreadAngle);

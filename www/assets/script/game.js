@@ -33,7 +33,7 @@ const FLAP_PWR = -7.5;
 const BIRD_W   = 8 * PX;
 const BIRD_H   = 8 * PX;
 
-// ─── Difficulté progressive (mode classique) ───
+// ─── Difficulté progressive ───
 const PIPE_GAP_MIN  = 100;
 const PIPE_GAP_BASE = 160;
 const PIPE_SPD_BASE = 3.2;
@@ -46,7 +46,7 @@ function getPipeInterval(s) { return Math.max(600, 1000 - s * 8); }
 let state    = 'mainmenu';
 let gameMode = 'classic';
 let score    = 0;
-let best     = 0; // chargé dans startGameMode selon le mode
+let best     = 0;
 
 let bird, pipes;
 let groundOffset    = 0;
@@ -69,6 +69,7 @@ function initGame() {
     screenShake = 0; deathTimer = 0; pipeTimer = 0; bobTimer = 0;
     marioCombo = 0; marioComboTimer = 0;
     resetFireballs();
+    resetFlameTrail();
     if (gameMode === 'classic') resetPowerups();
     if (gameMode === 'mario')   initMarioPipe(canvas.height);
     updateScoreDOM();
@@ -138,7 +139,7 @@ function checkCollisions() {
     if (gameMode === 'classic') {
         for (const p of pipes) {
             const px = p.x - 2, pw = PIPE_W + 4;
-            if (bx < px + pw && bx + bw > px && by < p.topH)    return true;
+            if (bx < px + pw && bx + bw > px && by < p.topH)     return true;
             if (bx < px + pw && bx + bw > px && by + bh > p.botY) return true;
         }
     }
@@ -152,7 +153,12 @@ function checkCollisions() {
 // MISE À JOUR
 // ─────────────────────────────────────────────
 
+function isFireSkin() {
+    return getActiveSkin() === 'fire';
+}
+
 function update(dt) {
+    // ─ État ready ─
     if (state === 'ready') {
         bobTimer += 0.05;
         bird.y    = canvas.height * 0.45 + Math.sin(bobTimer) * 6;
@@ -170,6 +176,7 @@ function update(dt) {
 
     if (state !== 'playing') return;
 
+    // Oiseau
     bird.vy += GRAVITY;
     bird.vy  = Math.min(bird.vy, 12);
     bird.y  += bird.vy;
@@ -184,6 +191,13 @@ function update(dt) {
     groundOffset += gameMode === 'classic'
         ? getPipeSpeed(score) * getSlowMult()
         : PIPE_SPD_BASE;
+
+    // Traînée de flammes (skin feu uniquement)
+    if (isFireSkin()) {
+        spawnFlame(bird.x, bird.y);
+        spawnFlame(bird.x, bird.y);
+    }
+    updateFlameTrail();
 
     // ─ Mode classique ─
     if (gameMode === 'classic') {
@@ -227,6 +241,13 @@ function update(dt) {
         if (marioComboTimer > 0) { marioComboTimer--; } else { marioCombo = 0; }
     }
 
+    // Étoiles filantes (mode classique uniquement)
+    if (gameMode === 'classic') {
+        updateShootingStars(dt, canvas.width, canvas.height);
+        updatePlanets(canvas.width);
+    }
+
+    // Collisions
     if (checkCollisions()) {
         state       = 'dead';
         screenShake = 10;
@@ -257,6 +278,10 @@ function drawBackground() {
 
 function drawBird() {
     const pal = getActivePal();
+
+    // Traînée de flammes dessinée AVANT le poulet
+    if (isFireSkin()) drawFlameTrail(ctx);
+
     ctx.save();
     ctx.translate(bird.x, bird.y);
     ctx.rotate((bird.rot * Math.PI) / 180);
@@ -274,9 +299,12 @@ function drawScene() {
     }
 
     if (gameMode === 'mario') {
-        drawMarioBackground(ctx, canvas.width, canvas.height, groundOffset);
+        drawMarioBackground(ctx, canvas.width, canvas.height, groundOffset, score);
     } else {
+        // Fond classique avec planètes et étoiles filantes
         drawBackground();
+        drawPlanets(ctx);
+        drawShootingStars(ctx);
         drawStars(ctx);
     }
 
@@ -290,7 +318,7 @@ function drawScene() {
     }
 
     if (gameMode === 'mario') {
-        drawMarioPipe(ctx, canvas.width, canvas.height);
+        drawMarioPipe(ctx, canvas.width, canvas.height, score);
         drawFireballs(ctx);
     }
 
@@ -426,7 +454,6 @@ document.getElementById('btn-pause').addEventListener('click',      togglePause)
 document.getElementById('btn-resume').addEventListener('click',     togglePause);
 document.getElementById('btn-pause-menu').addEventListener('click', goToMainMenu);
 
-// Boutons optionnels (progression / leaderboard)
 function bindOptional(id, fn) {
     const el = document.getElementById(id);
     if (el) el.addEventListener('click', fn);
@@ -458,7 +485,6 @@ bindOptional('btn-lb-mario', () => {
     if (c) c.classList.remove('active');
 });
 
-// Revive
 document.getElementById('btn-revive').addEventListener('click', () => {
     showReviveAd(success => {
         if (!success) return;
@@ -467,11 +493,11 @@ document.getElementById('btn-revive').addEventListener('click', () => {
         bird.y = canvas.height * 0.45; bird.vy = 0; bird.rot = 0;
         screenShake = 0; bobTimer = 0;
         resetFireballs();
+        resetFlameTrail();
         state = 'ready';
     });
 });
 
-// Doubler
 document.getElementById('btn-double').addEventListener('click', () => {
     showDoubleCoinsAd(success => {
         if (!success) return;
@@ -485,7 +511,6 @@ document.getElementById('btn-double').addEventListener('click', () => {
     });
 });
 
-// Flap
 document.addEventListener('touchstart', e => {
     if ((state === 'playing' || state === 'ready') && e.target.id !== 'btn-pause') {
         e.preventDefault(); flap();
@@ -602,6 +627,7 @@ function loop(t) {
                 ? getPipeSpeed(score) * getSlowMult()
                 : PIPE_SPD_BASE;
             updateParticles();
+            updateFlameTrail();
         } else {
             update(dt);
         }
@@ -624,9 +650,11 @@ function loop(t) {
 // ─────────────────────────────────────────────
 
 initStars(canvas.width, canvas.height);
+initShootingStars();
+initPlanets(canvas.width, canvas.height);
 showScreen('mainmenu-screen');
 updateCoinDisplay();
-if (typeof initDailyChallenge   === 'function') initDailyChallenge();
+if (typeof initDailyChallenge    === 'function') initDailyChallenge();
 if (typeof updateMenuProgression === 'function') updateMenuProgression();
 initAds();
 requestAnimationFrame(loop);
