@@ -217,21 +217,24 @@
         </div>
     </div>
 
-    <!-- Script indispensable pour faire le pont avec le mobile -->
-    <script src="capacitor.js"></script>
+    <!-- 1. Le moteur de liaison mobile -->
+<script src="capacitor.js"></script>
 
-    <!-- Ordre de chargement important -->
-    <script src="assets/script/ads.js"></script>
-    <script src="assets/script/game.js"></script>
-    <script src="assets/script/audio.js"></script>
-    <script src="assets/script/sprites.js"></script>
-    <script src="assets/script/particles.js"></script>
-    <script src="assets/script/skins.js"></script>
-    <script src="assets/script/mario.js"></script>
+<!-- 2. Les définitions (PX, images, sons) -->
+<script src="assets/script/sprites.js"></script> <!-- C'est ici que PX est défini -->
+<script src="assets/script/audio.js"></script>
+<script src="assets/script/skins.js"></script>
 
-    <script src="assets/script/powerups.js"></script>
-    <script src="assets/script/progression.js"></script>
-    <script src="assets/script/leaderboard.js"></script>
+<!-- 3. Les systèmes secondaires -->
+<script src="assets/script/particles.js"></script>
+<script src="assets/script/mario.js"></script>
+<script src="assets/script/ads.js"></script>
+<script src="assets/script/powerups.js"></script>
+<script src="assets/script/progression.js"></script>
+<script src="assets/script/leaderboard.js"></script>
+
+<!-- 4. Le cerveau du jeu (DOIT ÊTRE EN DERNIER) -->
+<script src="assets/script/game.js"></script>
 
 </body>
 

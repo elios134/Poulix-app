@@ -151,7 +151,6 @@ function isFireSkin() {
 }
 
 function update(dt) {
-    // ─ État ready ─
     if (state === 'ready') {
         bobTimer += 0.05;
         bird.y    = canvas.height * 0.45 + Math.sin(bobTimer) * 6;
@@ -169,7 +168,6 @@ function update(dt) {
 
     if (state !== 'playing') return;
 
-    // Oiseau
     bird.vy += GRAVITY;
     bird.vy  = Math.min(bird.vy, 12);
     bird.y  += bird.vy;
@@ -185,14 +183,12 @@ function update(dt) {
         ? getPipeSpeed(score) * getSlowMult()
         : PIPE_SPD_BASE;
 
-    // Traînée de flammes (skin feu uniquement)
     if (isFireSkin()) {
         spawnFlame(bird.x, bird.y);
         spawnFlame(bird.x, bird.y);
     }
     updateFlameTrail();
 
-    // ─ Mode classique ─
     if (gameMode === 'classic') {
         pipeTimer += dt;
         if (pipeTimer >= getPipeInterval(score)) { pipeTimer = 0; spawnPipe(); }
@@ -219,7 +215,6 @@ function update(dt) {
         });
     }
 
-    // ─ Mode Mario ─
     if (gameMode === 'mario') {
         updateMarioPipe(dt, score);
         updateFireballs(dt, score, canvas.width, canvas.height, bird, () => {
@@ -234,13 +229,11 @@ function update(dt) {
         if (marioComboTimer > 0) { marioComboTimer--; } else { marioCombo = 0; }
     }
 
-    // Étoiles filantes (mode classique uniquement)
     if (gameMode === 'classic') {
         updateShootingStars(dt, canvas.width, canvas.height);
         updatePlanets(canvas.width);
     }
 
-    // Collisions
     if (checkCollisions()) {
         state       = 'dead';
         screenShake = 10;
@@ -271,8 +264,6 @@ function drawBackground() {
 
 function drawBird() {
     const pal = getActivePal();
-
-    // Traînée de flammes dessinée AVANT le poulet
     if (isFireSkin()) drawFlameTrail(ctx);
 
     ctx.save();
@@ -285,16 +276,12 @@ function drawBird() {
 function drawScene() {
     if (screenShake > 0) {
         ctx.save();
-        ctx.translate(
-            (Math.random() - 0.5) * screenShake,
-            (Math.random() - 0.5) * screenShake
-        );
+        ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
     }
 
     if (gameMode === 'mario') {
         drawMarioBackground(ctx, canvas.width, canvas.height, groundOffset, score);
     } else {
-        // Fond classique avec planètes et étoiles filantes
         drawBackground();
         drawPlanets(ctx);
         drawShootingStars(ctx);
@@ -373,7 +360,7 @@ function showGameOver() {
     if (typeof updateMenuProgression === 'function') updateMenuProgression();
 
     const btnRevive = document.getElementById('btn-revive');
-    if (btnRevive) btnRevive.style.display = hasRevived ? 'none' : 'inline-block';
+    if (btnRevive) btnRevive.style.display = (typeof hasRevived !== 'undefined' && hasRevived) ? 'none' : 'inline-block';
 
     const btnDouble = document.getElementById('btn-double');
     if (btnDouble) {
@@ -420,10 +407,8 @@ function goToShop() {
 
 function startGameMode(mode) {
     gameMode = mode;
-    best = parseInt(localStorage.getItem(
-        mode === 'mario' ? 'fb_best_mario' : 'fb_best_classic'
-    ) || '0');
-    resetRevive();
+    best = parseInt(localStorage.getItem(mode === 'mario' ? 'fb_best_mario' : 'fb_best_classic') || '0');
+    if (typeof resetRevive === 'function') resetRevive();
     ['modeselect-screen', 'mainmenu-screen'].forEach(hideScreen);
     ['score-display-wrap', 'pause-btn-wrap', 'ready-screen'].forEach(showScreen);
     initGame();
@@ -432,7 +417,7 @@ function startGameMode(mode) {
 }
 
 // ─────────────────────────────────────────────
-// BOUTONS
+// BOUTONS ET INPUTS
 // ─────────────────────────────────────────────
 
 document.getElementById('btn-play').addEventListener('click',       () => { initAudio(); goToModeSelect(); });
@@ -478,30 +463,35 @@ bindOptional('btn-lb-mario', () => {
     if (c) c.classList.remove('active');
 });
 
+// --- Actions Publicités ---
 document.getElementById('btn-revive').addEventListener('click', () => {
-    showReviveAd(success => {
-        if (!success) return;
-        hideScreen('gameover-screen');
-        ['score-display-wrap', 'pause-btn-wrap', 'ready-screen'].forEach(showScreen);
-        bird.y = canvas.height * 0.45; bird.vy = 0; bird.rot = 0;
-        screenShake = 0; bobTimer = 0;
-        resetFireballs();
-        resetFlameTrail();
-        state = 'ready';
-    });
+    if (typeof showReviveAd === 'function') {
+        showReviveAd(success => {
+            if (!success) return;
+            hideScreen('gameover-screen');
+            ['score-display-wrap', 'pause-btn-wrap', 'ready-screen'].forEach(showScreen);
+            bird.y = canvas.height * 0.45; bird.vy = 0; bird.rot = 0;
+            screenShake = 0; bobTimer = 0;
+            resetFireballs();
+            resetFlameTrail();
+            state = 'ready';
+        });
+    }
 });
 
 document.getElementById('btn-double').addEventListener('click', () => {
-    showDoubleCoinsAd(success => {
-        if (!success) return;
-        const bonus = window._pendingEarned || 0;
-        addCoins(bonus);
-        updateCoinDisplay();
-        document.getElementById('go-earned').textContent = `+${bonus * 2} 🪙 ✓`;
-        const btn = document.getElementById('btn-double');
-        btn.disabled = true; btn.style.opacity = '0.4';
-        window._pendingEarned = 0;
-    });
+    if (typeof showDoubleCoinsAd === 'function') {
+        showDoubleCoinsAd(success => {
+            if (!success) return;
+            const bonus = window._pendingEarned || 0;
+            addCoins(bonus);
+            updateCoinDisplay();
+            document.getElementById('go-earned').textContent = `+${bonus * 2} 🪙 ✓`;
+            const btn = document.getElementById('btn-double');
+            btn.disabled = true; btn.style.opacity = '0.4';
+            window._pendingEarned = 0;
+        });
+    }
 });
 
 document.addEventListener('touchstart', e => {
@@ -520,7 +510,7 @@ document.addEventListener('keydown', e => {
 });
 
 // ─────────────────────────────────────────────
-// TOASTS
+// TOASTS ET UI
 // ─────────────────────────────────────────────
 
 function showPowerupToast(type) {
@@ -597,7 +587,6 @@ function updateMenuProgression() {
 // ─────────────────────────────────────────────
 
 let lastT = 0;
-
 function loop(t) {
     const dt = Math.min(t - lastT, 50);
     lastT = t;
@@ -607,8 +596,7 @@ function loop(t) {
 
     if (state !== 'paused') updateStars(canvas.height, canvas.width);
 
-    if (['mainmenu', 'modeselect', 'shop', 'gameover',
-         'progression', 'leaderboard'].includes(state)) {
+    if (['mainmenu', 'modeselect', 'shop', 'gameover', 'progression', 'leaderboard'].includes(state)) {
         drawStars(ctx);
     }
 
@@ -616,9 +604,7 @@ function loop(t) {
         if (state === 'dead') {
             deathTimer--;
             bird.vy += GRAVITY; bird.y += bird.vy; bird.rot = 90;
-            groundOffset += gameMode === 'classic'
-                ? getPipeSpeed(score) * getSlowMult()
-                : PIPE_SPD_BASE;
+            groundOffset += gameMode === 'classic' ? getPipeSpeed(score) * getSlowMult() : PIPE_SPD_BASE;
             updateParticles();
             updateFlameTrail();
         } else {
@@ -632,14 +618,12 @@ function loop(t) {
             ['score-display-wrap', 'pause-btn-wrap'].forEach(hideScreen);
         }
     }
-
     if (state === 'paused') drawScene();
-
     requestAnimationFrame(loop);
 }
 
 // ─────────────────────────────────────────────
-// DÉMARRAGE
+// DÉMARRAGE DU SYSTÈME
 // ─────────────────────────────────────────────
 
 initStars(canvas.width, canvas.height);
@@ -649,5 +633,12 @@ showScreen('mainmenu-screen');
 updateCoinDisplay();
 if (typeof initDailyChallenge    === 'function') initDailyChallenge();
 if (typeof updateMenuProgression === 'function') updateMenuProgression();
-initAds();
+
+// Appel unique d'initialisation des publicités
+if (typeof initAds === 'function') {
+    initAds();
+} else {
+    alert("ALERTE : La fonction initAds est introuvable !");
+}
+
 requestAnimationFrame(loop);
