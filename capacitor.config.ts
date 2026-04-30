@@ -9,8 +9,8 @@ const config: CapacitorConfig = {
   },
   plugins: {
     AdMob: {
-      initializeForTesting: true,
-      appId: 'ca-app-pub-1547050289305054/8364297093', // ID de test Android
+      initializeForTesting: false,
+      appId: 'ca-app-pub-1547050289305054~9520542653', // ⚠️ À remplacer par l'ID avec le tilde (~)
     }
   }
 };

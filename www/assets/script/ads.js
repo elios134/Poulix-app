@@ -62,9 +62,8 @@ async function preloadRewardAd() {
     }
 }
 
-async function showReviveAd(onSuccess) {
-    // Sécurité : On ne lance rien si la pub n'est pas chargée ou déjà utilisée
-    if (hasRevived || !adLoaded || isShowingAd || !AdMob) {
+async function showGenericRewardAd(isRevive, onSuccess) {
+    if ((isRevive && hasRevived) || !adLoaded || isShowingAd || !AdMob) {
         onSuccess(false);
         return;
     }
@@ -73,13 +72,13 @@ async function showReviveAd(onSuccess) {
     try {
         const result = await AdMob.showRewardVideoAd();
         if (result && result.type === 'rewarded') {
-            hasRevived = true;
+            if (isRevive) hasRevived = true;
             onSuccess(true);
         } else {
             onSuccess(false);
         }
     } catch (e) {
-        console.error('F.R.I.D.A.Y. : Erreur affichage Revive -', e);
+        console.error(`F.R.I.D.A.Y. : Erreur affichage pub (Revive: ${isRevive}) -`, e);
         onSuccess(false);
     } finally {
         isShowingAd = false;
@@ -87,27 +86,12 @@ async function showReviveAd(onSuccess) {
     }
 }
 
-async function showDoubleCoinsAd(onSuccess) {
-    if (!adLoaded || isShowingAd || !AdMob) {
-        onSuccess(false);
-        return;
-    }
-
-    isShowingAd = true;
-    try {
-        const result = await AdMob.showRewardVideoAd();
-        if (result && result.type === 'rewarded') {
-            onSuccess(true);
-        } else {
-            onSuccess(false);
-        }
-    } catch (e) {
-        console.error('F.R.I.D.A.Y. : Erreur affichage DoubleCoins -', e);
-        onSuccess(false);
-    } finally {
-        isShowingAd = false;
-        adLoaded = false; // Reset pour forcer le prochain preload
-    }
+// --- API Publique appelée par game.js ---
+function showReviveAd(onSuccess) {
+    return showGenericRewardAd(true, onSuccess);
+}
+function showDoubleCoinsAd(onSuccess) {
+    return showGenericRewardAd(false, onSuccess);
 }
 
 function resetRevive() {

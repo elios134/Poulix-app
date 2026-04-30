@@ -360,13 +360,21 @@ function showGameOver() {
     if (typeof updateMenuProgression === 'function') updateMenuProgression();
 
     const btnRevive = document.getElementById('btn-revive');
-    if (btnRevive) btnRevive.style.display = (typeof hasRevived !== 'undefined' && hasRevived) ? 'none' : 'inline-block';
+    if (btnRevive) {
+        btnRevive.style.display = (typeof hasRevived !== 'undefined' && hasRevived) ? 'none' : 'inline-block';
+        // Griser le bouton si la pub n'est pas chargée (ex: pas d'internet)
+        const isAdReady = typeof adLoaded !== 'undefined' && adLoaded;
+        btnRevive.disabled = !isAdReady;
+        btnRevive.style.opacity = isAdReady ? '1' : '0.4';
+    }
 
     const btnDouble = document.getElementById('btn-double');
     if (btnDouble) {
-        btnDouble.disabled      = false;
-        btnDouble.style.opacity = '1';
-        btnDouble.textContent   = `▶ DOUBLER (+${earned} 🪙)`;
+        // Griser le bouton et changer le texte si pas de pub
+        const isAdReady = typeof adLoaded !== 'undefined' && adLoaded;
+        btnDouble.disabled      = !isAdReady;
+        btnDouble.style.opacity = isAdReady ? '1' : '0.4';
+        btnDouble.textContent   = isAdReady ? `▶ DOUBLER (+${earned} 🪙)` : `PUB INDISPONIBLE`;
     }
 
     showScreen('gameover-screen');
@@ -468,6 +476,14 @@ document.getElementById('btn-revive').addEventListener('click', () => {
     if (typeof showReviveAd === 'function') {
         showReviveAd(success => {
             if (!success) return;
+                
+                // Retirer les pièces données prématurément par le Game Over 
+                // car la partie continue et le score final sera calculé plus tard !
+                const earned = window._pendingEarned || 0;
+                addCoins(-earned);
+                updateCoinDisplay();
+                window._pendingEarned = 0;
+
             hideScreen('gameover-screen');
             ['score-display-wrap', 'pause-btn-wrap', 'ready-screen'].forEach(showScreen);
             bird.y = canvas.height * 0.45; bird.vy = 0; bird.rot = 0;
@@ -490,6 +506,10 @@ document.getElementById('btn-double').addEventListener('click', () => {
             const btn = document.getElementById('btn-double');
             btn.disabled = true; btn.style.opacity = '0.4';
             window._pendingEarned = 0;
+                
+                // Interdire la résurrection si on a choisi de doubler l'or
+                const btnRevive = document.getElementById('btn-revive');
+                if (btnRevive) btnRevive.style.display = 'none';
         });
     }
 });
@@ -626,19 +646,42 @@ function loop(t) {
 // DÉMARRAGE DU SYSTÈME
 // ─────────────────────────────────────────────
 
-initStars(canvas.width, canvas.height);
-initShootingStars();
-initPlanets(canvas.width, canvas.height);
-showScreen('mainmenu-screen');
-updateCoinDisplay();
-if (typeof initDailyChallenge    === 'function') initDailyChallenge();
-if (typeof updateMenuProgression === 'function') updateMenuProgression();
+async function bootGame() {
+    // 1. Sécuriser les sauvegardes via Capacitor Preferences
+    const Prefs = window.Capacitor && window.Capacitor.Plugins ? window.Capacitor.Plugins.Preferences : null;
 
-// Appel unique d'initialisation des publicités
-if (typeof initAds === 'function') {
-    initAds();
-} else {
-    alert("ALERTE : La fonction initAds est introuvable !");
+    if (Prefs) {
+        // Liste exhaustive de toutes les clés utilisées dans votre jeu
+        const keysToSync = ['px_stats', 'fb_coins', 'fb_unlocked', 'fb_skin', 'px_lb_mario', 'px_lb_classic', 'fb_best_classic', 'fb_best_mario'];
+        
+        // A. Restaurer les données depuis le stockage natif vers le localStorage
+        for (const k of keysToSync) {
+            const { value } = await Prefs.get({ key: k });
+            if (value !== null) localStorage.setItem(k, value);
+        }
+
+        // B. Surcharger localStorage.setItem pour faire un backup automatique
+        const originalSetItem = localStorage.setItem;
+        localStorage.setItem = function(key, value) {
+            originalSetItem.call(localStorage, key, value); // Sauvegarde web normale
+            if (keysToSync.includes(key)) {
+                Prefs.set({ key, value: String(value) }); // Backup natif silencieux
+            }
+        };
+    }
+
+    // 2. Initialiser l'interface et le jeu
+    initStars(canvas.width, canvas.height);
+    initShootingStars();
+    initPlanets(canvas.width, canvas.height);
+    showScreen('mainmenu-screen');
+    updateCoinDisplay();
+    if (typeof initDailyChallenge    === 'function') initDailyChallenge();
+    if (typeof updateMenuProgression === 'function') updateMenuProgression();
+    if (typeof initAds === 'function') initAds();
+
+    requestAnimationFrame(loop);
 }
 
-requestAnimationFrame(loop);
+// Lancer le démarrage
+bootGame();
