@@ -1,10 +1,3 @@
-// ─────────────────────────────────────────────
-// GAME — Poulpix
-// Dépend de : audio.js, sprites.js, skins.js, mario.js,
-//             particles.js, ads.js, powerups.js,
-//             progression.js, leaderboard.js
-// ─────────────────────────────────────────────
-
 'use strict';
 
 window.onerror = function (msg, src, line) {

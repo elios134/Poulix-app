@@ -3,38 +3,41 @@ let hasRevived = false;
 let isShowingAd = false; // Verrou pour éviter les doubles clics/crashs
 
 async function initAds() {
+    console.log("CHECKPOINT_ADMOB_START");
     try {
+        // Alerte de diagnostic 1
+        alert("F.R.I.D.A.Y. : Tentative d'initialisation AdMob...");
+
         await AdMob.initialize({
-            requestTrackingAuthorization: true, // Passez à true pour voir si ça débloque le consentement
+            requestTrackingAuthorization: true,
             testingDevices: ['EMULATOR'],
             initializeForTesting: true,
         });
 
-        // --- Configuration des Listeners (Sécurité Google Play) ---
+        // Alerte de diagnostic 2
+        alert("F.R.I.D.A.Y. : Initialisation réussie. Configuration des listeners...");
 
-        // Se déclenche quand une pub est prête
         AdMob.addListener('rewardVideoAdLoaded', () => {
             adLoaded = true;
+            alert('F.R.I.D.A.Y. : Publicité prête !'); // Alerte de succès
             console.log('F.R.I.D.A.Y. : Publicité Reward prête en mémoire.');
         });
 
-        // Se déclenche si le chargement échoue
         AdMob.addListener('rewardVideoAdFailedToLoad', (error) => {
             adLoaded = false;
-            // Cette alerte vous donnera le code d'erreur exact sur votre écran
-            alert('F.R.I.D.A.Y. : Erreur AdMob - ' + JSON.stringify(error));
+            alert('F.R.I.D.A.Y. : Échec chargement pub - ' + JSON.stringify(error));
             setTimeout(() => preloadRewardAd(), 15000);
         });
 
-        // Se déclenche quand la pub est fermée (réussite ou abandon)
         AdMob.addListener('rewardVideoAdDismissed', () => {
             adLoaded = false;
             isShowingAd = false;
-            preloadRewardAd(); // On prépare la suivante immédiatement
+            preloadRewardAd();
         });
 
         preloadRewardAd();
     } catch (e) {
+        alert('F.R.I.D.A.Y. : Erreur critique INIT - ' + e.message);
         console.log('AdMob init failed:', e);
     }
 }

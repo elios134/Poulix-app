@@ -8,13 +8,10 @@ const config: CapacitorConfig = {
     // androidScheme: 'https'
   },
   plugins: {
-    // AdMob — décommenter et remplir avec tes vrais IDs
-    // AdMob: {
-    //   appId: {
-    //     android: 'ca-app-pub-XXXXXXXX~XXXXXXXXXX',
-    //     ios:     'ca-app-pub-XXXXXXXX~XXXXXXXXXX',
-    //   }
-    // }
+    AdMob: {
+      initializeForTesting: true,
+      appId: 'ca-app-pub-3940256099942544~3347511713', // ID de test Android
+    }
   }
 };
 

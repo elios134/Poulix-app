@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <title>Poulpix</title>
 </head>
+
 <body>
     <canvas id="gameCanvas"></canvas>
     <div id="scanlines"></div>
@@ -215,16 +217,22 @@
         </div>
     </div>
 
+    <!-- Script indispensable pour faire le pont avec le mobile -->
+    <script src="capacitor.js"></script>
+
     <!-- Ordre de chargement important -->
+    <script src="assets/script/ads.js"></script>
+    <script src="assets/script/game.js"></script>
     <script src="assets/script/audio.js"></script>
     <script src="assets/script/sprites.js"></script>
     <script src="assets/script/particles.js"></script>
     <script src="assets/script/skins.js"></script>
     <script src="assets/script/mario.js"></script>
-    <script src="assets/script/ads.js"></script>
+
     <script src="assets/script/powerups.js"></script>
     <script src="assets/script/progression.js"></script>
     <script src="assets/script/leaderboard.js"></script>
-    <script src="assets/script/game.js"></script>
+
 </body>
+
 </html>
