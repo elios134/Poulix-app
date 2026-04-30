@@ -1,4 +1,4 @@
-package com.poulpix.poulpix;
+package com.poulpix;
 
 import com.getcapacitor.BridgeActivity;
 
