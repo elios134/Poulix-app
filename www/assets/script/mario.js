@@ -105,11 +105,11 @@ const HILLS = [
     { xp: 0.62, rp: 0.16 },
 ];
 
-const BRICKS = [
-    { xp: 0.10, yp: 0.55 },
-    { xp: 0.22, yp: 0.38 },
-    { xp: 0.42, yp: 0.62 },
-    { xp: 0.60, yp: 0.42 },
+const TREES = [
+    { xp: 0.15, s: 1.2 },
+    { xp: 0.35, s: 0.9 },
+    { xp: 0.55, s: 1.4 },
+    { xp: 0.85, s: 1.1 },
 ];
 
 // Couleurs du ciel par phase (index 0→3)
@@ -126,6 +126,7 @@ function drawMarioBackground(ctx, canvasW, canvasH, offset, score) {
     const phase    = getMarioPhase(score || 0);
     const phaseIdx = MARIO_PHASES.indexOf(phase);
     const sky      = PHASE_SKIES[phaseIdx] || PHASE_SKIES[0];
+    const isNight  = phaseIdx === 3;
 
     // Ciel — couleur selon la phase
     const grad = ctx.createLinearGradient(0, 0, 0, groundY);
@@ -135,14 +136,18 @@ function drawMarioBackground(ctx, canvasW, canvasH, offset, score) {
     ctx.fillRect(0, 0, canvasW, groundY);
 
     // Collines
+    const hillColor1 = isNight ? '#0b1a10' : '#3aaa3a';
+    const hillColor2 = isNight ? '#132b18' : '#4cc44c';
+    const hillSpots  = isNight ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.25)';
+
     HILLS.forEach(h => {
         const cx = ((h.xp * canvasW - offset * 0.2) % (canvasW + 200)) - 100;
         const r  = h.rp * canvasW;
-        ctx.fillStyle = '#3aaa3a';
+        ctx.fillStyle = hillColor1;
         ctx.beginPath(); ctx.arc(cx, groundY, r, Math.PI, 0); ctx.fill();
-        ctx.fillStyle = '#4cc44c';
+        ctx.fillStyle = hillColor2;
         ctx.beginPath(); ctx.arc(cx, groundY - 6, r - 4, Math.PI, 0); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.fillStyle = hillSpots;
         ctx.beginPath(); ctx.arc(cx - r * 0.3, groundY - r * 0.5, r * 0.07, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(cx + r * 0.1, groundY - r * 0.65, r * 0.05, 0, Math.PI * 2); ctx.fill();
     });
@@ -150,21 +155,21 @@ function drawMarioBackground(ctx, canvasW, canvasH, offset, score) {
     // Nuages
     CLOUDS.forEach(c => {
         const cx = ((c.xp * canvasW - offset * 0.3) % (canvasW + 200) + canvasW + 200) % (canvasW + 200) - 100;
-        drawCloud(ctx, cx, c.yp * groundY, c.s * 28);
+        drawCloud(ctx, cx, c.yp * groundY, c.s * 28, isNight);
     });
 
-    // Briques
-    BRICKS.forEach(b => {
-        const bx = ((b.xp * canvasW - offset * 0.6) % (canvasW + 100) + canvasW + 100) % (canvasW + 100) - 50;
-        drawBrickBlock(ctx, bx, b.yp * groundY);
+    // Arbres (forêt)
+    TREES.forEach(t => {
+        const tx = ((t.xp * canvasW - offset * 0.5) % (canvasW + 150) + canvasW + 150) % (canvasW + 150) - 75;
+        drawTree(ctx, tx, groundY, t.s, isNight);
     });
 
     // Sol
-    ctx.fillStyle = '#6ac832';
+    ctx.fillStyle = isNight ? '#122616' : '#6ac832';
     ctx.fillRect(0, groundY, canvasW, GH);
-    ctx.fillStyle = '#4a9818';
+    ctx.fillStyle = isNight ? '#0a170c' : '#4a9818';
     ctx.fillRect(0, groundY, canvasW, 8);
-    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.fillStyle = isNight ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.1)';
     const tileW = 32;
     for (let x = -tileW + (offset * 0.8 % tileW); x < canvasW + tileW; x += tileW) {
         ctx.fillRect(x, groundY + 8, 1, GH - 8);
@@ -174,28 +179,39 @@ function drawMarioBackground(ctx, canvasW, canvasH, offset, score) {
     }
 }
 
-function drawCloud(ctx, cx, cy, s) {
-    ctx.fillStyle = '#ffffff';
+function drawCloud(ctx, cx, cy, s, isNight = false) {
+    ctx.fillStyle = isNight ? '#182b1c' : '#ffffff';
     ctx.beginPath(); ctx.arc(cx, cy, s, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx - s, cy + s * 0.4, s * 0.7, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + s, cy + s * 0.4, s * 0.7, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx - s * 0.4, cy + s * 0.8, s * 0.9, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(cx + s * 0.4, cy + s * 0.8, s * 0.9, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = 'rgba(200,230,255,0.5)';
+    ctx.fillStyle = isNight ? 'rgba(0,0,0,0.3)' : 'rgba(200,230,255,0.5)';
     ctx.beginPath(); ctx.arc(cx, cy + s * 0.3, s * 0.6, 0, Math.PI * 2); ctx.fill();
 }
 
-function drawBrickBlock(ctx, x, y) {
-    const bw = 28, bh = 28;
-    ctx.fillStyle = '#c84c0c'; ctx.fillRect(x, y, bw, bh);
-    ctx.fillStyle = '#e86010'; ctx.fillRect(x + 2, y + 2, bw - 4, 10); ctx.fillRect(x + 2, y + 2, 10, bh - 4);
-    ctx.fillStyle = '#8c3008';
-    ctx.fillRect(x + bw - 3, y, 3, bh);
-    ctx.fillRect(x, y + bh - 3, bw, 3);
-    ctx.fillRect(x, y + bh / 2, bw, 2);
-    ctx.fillRect(x + bw / 2, y, 2, bh / 2);
-    ctx.fillRect(x + bw / 4, y + bh / 2, 2, bh / 2);
-    ctx.fillRect(x + 3 * bw / 4, y + bh / 2, 2, bh / 2);
+function drawTree(ctx, x, y, scale, isNight = false) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    // Tronc
+    ctx.fillStyle = isNight ? '#1f1311' : '#6b4226';
+    ctx.fillRect(-5, -30, 10, 30);
+
+    // Feuillage en 3 couches pour faire un joli sapin
+    ctx.fillStyle = isNight ? '#0d1f13' : '#2d7a3e';
+    
+    ctx.beginPath();
+    ctx.moveTo(-25, -20); ctx.lineTo(0, -55); ctx.lineTo(25, -20); ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-20, -40); ctx.lineTo(0, -70); ctx.lineTo(20, -40); ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-15, -55); ctx.lineTo(0, -85); ctx.lineTo(15, -55); ctx.fill();
+
+    ctx.restore();
 }
 
 // ─────────────────────────────────────────────
