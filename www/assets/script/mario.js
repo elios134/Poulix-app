@@ -18,23 +18,23 @@ function getMarioPhase(score) {
     return phase;
 }
 
-// ─── Sprite Mario ───
+// ─── Sprite Renard ───
 const MARIO_SPR = [
-    [0, 0, 2, 2, 2, 2, 2, 0, 0, 0],
-    [0, 2, 2, 2, 2, 2, 2, 2, 2, 0],
-    [0, 3, 3, 1, 3, 1, 1, 1, 0, 0],
-    [3, 3, 1, 3, 1, 1, 1, 3, 3, 0],
-    [3, 3, 1, 1, 1, 1, 1, 3, 3, 0],
-    [0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
-    [0, 4, 4, 2, 4, 4, 4, 0, 0, 0],
-    [4, 4, 4, 2, 4, 4, 4, 4, 4, 0],
-    [4, 4, 4, 2, 2, 2, 2, 4, 4, 0],
-    [0, 4, 0, 2, 2, 2, 2, 0, 4, 0],
-    [0, 4, 4, 4, 0, 0, 4, 4, 4, 0],
-    [0, 4, 4, 4, 0, 0, 4, 4, 4, 0],
+    [0, 0, 1, 1, 0, 0, 1, 1, 0, 0], // Pointes des oreilles
+    [0, 1, 2, 1, 0, 0, 1, 2, 1, 0], // Intérieur blanc
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0], // Haut du crâne
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // Tête
+    [1, 2, 2, 1, 1, 1, 1, 2, 2, 1], // Dessus des yeux
+    [1, 2, 3, 2, 1, 1, 2, 3, 2, 1], // Yeux (3 = noir)
+    [1, 2, 2, 2, 3, 3, 2, 2, 2, 1], // Museau avec truffe
+    [0, 1, 2, 2, 2, 2, 2, 2, 1, 0], // Bas du museau
+    [0, 0, 1, 1, 2, 2, 1, 1, 0, 0], // Cou
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0], // Corps
+    [1, 1, 4, 4, 0, 0, 4, 4, 1, 1], // Pattes
+    [1, 1, 4, 4, 0, 0, 4, 4, 1, 1], // Pattes
 ];
 
-const MARIO_PAL = { 1: '#f4a460', 2: '#cc2200', 3: '#8b4513', 4: '#0066cc' };
+const MARIO_PAL = { 1: '#e66a00', 2: '#ffffff', 3: '#111111', 4: '#8c3d00' };
 
 const MARIO_PX = 5;
 const MARIO_W  = 10 * MARIO_PX;
@@ -114,10 +114,10 @@ const BRICKS = [
 
 // Couleurs du ciel par phase (index 0→3)
 const PHASE_SKIES = [
-    { top: '#5cc8f8', bot: '#aeeaff' }, // Phase 1 — bleu normal
-    { top: '#f8a020', bot: '#ffd080' }, // Phase 2 — orange
-    { top: '#c030c0', bot: '#f090f0' }, // Phase 3 — rose/violet
-    { top: '#1a0a2e', bot: '#3a1060' }, // Phase 4 — noir/violet sombre
+    { top: '#6bc3d6', bot: '#a8e6cf' }, // Phase 1 — Matin en forêt (bleu et vert clair)
+    { top: '#d2691e', bot: '#f4a460' }, // Phase 2 — Automne / Fin de journée (ocre et brun)
+    { top: '#2f4f4f', bot: '#556b2f' }, // Phase 3 — Forêt brumeuse (gris ardoise et vert olive)
+    { top: '#0a110a', bot: '#1b3b22' }, // Phase 4 — Nuit noire (noir et vert sapin profond)
 ];
 
 function drawMarioBackground(ctx, canvasW, canvasH, offset, score) {
@@ -210,22 +210,47 @@ function drawMarioPipe(ctx, canvasW, canvasH, score) {
     const phase    = getMarioPhase(score || 0);
     const phaseIdx = MARIO_PHASES.indexOf(phase);
 
-    // Corps tuyau
-    ctx.fillStyle = '#e8c800';
-    ctx.fillRect(pipeX + 4, pipeTop + PIPE_MARIO_CAP, PIPE_MARIO_W - 8, groundY - pipeTop - PIPE_MARIO_CAP);
-    ctx.fillStyle = '#b89800';
-    ctx.fillRect(pipeX + 10, pipeTop + PIPE_MARIO_CAP, 6, groundY - pipeTop - PIPE_MARIO_CAP);
-    ctx.fillRect(pipeX + PIPE_MARIO_W - 16, pipeTop + PIPE_MARIO_CAP, 6, groundY - pipeTop - PIPE_MARIO_CAP);
+    // --- NOUVEAU DESIGN : CLÔTURE BLANCHE ---
+    const capH = 20; // Hauteur de la pointe de la clôture
 
-    // Chapeau
-    ctx.fillStyle = '#f0d000';
-    ctx.fillRect(pipeX, pipeTop, PIPE_MARIO_W, PIPE_MARIO_CAP);
-    ctx.fillStyle = '#a07800';
-    ctx.fillRect(pipeX, pipeTop + PIPE_MARIO_CAP - 3, PIPE_MARIO_W, 3);
-    ctx.fillRect(pipeX, pipeTop, 3, PIPE_MARIO_CAP);
-    ctx.fillRect(pipeX + PIPE_MARIO_W - 3, pipeTop, 3, PIPE_MARIO_CAP);
+    // Pointe de la clôture
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(pipeX, pipeTop + capH);
+    ctx.lineTo(pipeX + PIPE_MARIO_W / 2, pipeTop);
+    ctx.lineTo(pipeX + PIPE_MARIO_W, pipeTop + capH);
+    ctx.fill();
 
-    // Mario (miroir vers la gauche)
+    // Ombre de la pointe
+    ctx.fillStyle = '#e0e0e0';
+    ctx.beginPath();
+    ctx.moveTo(pipeX + PIPE_MARIO_W / 2, pipeTop);
+    ctx.lineTo(pipeX + PIPE_MARIO_W, pipeTop + capH);
+    ctx.lineTo(pipeX + PIPE_MARIO_W - 6, pipeTop + capH);
+    ctx.lineTo(pipeX + PIPE_MARIO_W / 2, pipeTop + 6);
+    ctx.fill();
+
+    // Corps du poteau principal
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(pipeX, pipeTop + capH, PIPE_MARIO_W, groundY - pipeTop - capH);
+
+    // Ombre côté droit du poteau
+    ctx.fillStyle = '#e0e0e0';
+    ctx.fillRect(pipeX + PIPE_MARIO_W - 8, pipeTop + capH, 8, groundY - pipeTop - capH);
+
+    // Lignes de bois verticales
+    ctx.fillStyle = '#d0d0d0';
+    ctx.fillRect(pipeX + 15, pipeTop + capH, 2, groundY - pipeTop - capH);
+    ctx.fillRect(pipeX + 30, pipeTop + capH, 2, groundY - pipeTop - capH);
+    ctx.fillRect(pipeX + 45, pipeTop + capH, 2, groundY - pipeTop - capH);
+
+    // Traverse horizontale
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(pipeX - 6, pipeTop + capH + 20, PIPE_MARIO_W + 12, 14);
+    ctx.fillStyle = '#e0e0e0';
+    ctx.fillRect(pipeX - 6, pipeTop + capH + 32, PIPE_MARIO_W + 12, 2);
+
+    // Boss Renard (miroir vers la gauche)
     const mx = pipeX + (PIPE_MARIO_W - MARIO_W) / 2;
     const my = pipeTop - MARIO_H;
     ctx.save();
@@ -340,8 +365,9 @@ function drawFireball(ctx, fb) {
 function drawFireballs(ctx) { fireballs.forEach(fb => drawFireball(ctx, fb)); }
 
 function checkFireballCollision(birdX, birdY, birdW, birdH) {
-    const bx = birdX - birdW * 0.35, by = birdY - birdH * 0.35;
-    const bw = birdW * 0.7, bh = birdH * 0.7;
+    // Hitbox réduite à 50% pour la cohérence avec le mode classique
+    const bx = birdX - birdW * 0.25, by = birdY - birdH * 0.25;
+    const bw = birdW * 0.5, bh = birdH * 0.5;
     for (const fb of fireballs) {
         if (bx < fb.x + FB_W && bx + bw > fb.x && by < fb.y + FB_H && by + bh > fb.y) return true;
     }

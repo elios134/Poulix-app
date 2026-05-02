@@ -26,14 +26,14 @@ const FLAP_PWR = -7.5;
 const BIRD_W   = 8 * PX;
 const BIRD_H   = 8 * PX;
 
-// ─── Difficulté progressive ───
-const PIPE_GAP_MIN  = 100;
-const PIPE_GAP_BASE = 160;
-const PIPE_SPD_BASE = 3.2;
+// ─── Difficulté progressive équilibrée ───
+const PIPE_GAP_MIN  = 115;  // 100 était un peu trop cruel, 115 offre un challenge plus juste
+const PIPE_GAP_BASE = 170;  // On part d'un poil plus large pour faciliter les premiers tuyaux
+const PIPE_SPD_BASE = 3.0;  // Vitesse de départ légèrement ralentie
 
-function getPipeGap(s)      { return Math.max(PIPE_GAP_MIN, PIPE_GAP_BASE - s * 2); }
-function getPipeSpeed(s)    { return Math.min(8, PIPE_SPD_BASE + s * 0.08); }
-function getPipeInterval(s) { return Math.max(600, 1000 - s * 8); }
+function getPipeGap(s)      { return Math.max(PIPE_GAP_MIN, PIPE_GAP_BASE - s * 1.2); }
+function getPipeSpeed(s)    { return Math.min(5.5, PIPE_SPD_BASE + s * 0.03); } 
+function getPipeInterval(s) { return Math.max(900, 1400 - s * 8); }
 
 // ─── État global ───
 let state    = 'mainmenu';
@@ -75,7 +75,25 @@ function initGame() {
 function spawnPipe() {
     const groundY = canvas.height - GROUND_H;
     const gap     = getPipeGap(score);
-    const topH    = 80 + Math.random() * (groundY - gap - 160);
+    
+    const minTopH = 80;
+    // On s'assure que maxTopH n'est pas inférieur à minTopH sur les très petits écrans
+    const maxTopH = Math.max(minTopH, groundY - gap - 80);
+    
+    let topH;
+    if (pipes.length > 0) {
+        const lastTopH = pipes[pipes.length - 1].topH;
+        const maxVariation = 130; // La différence maximale de hauteur autorisée
+        
+        const clampedMin = Math.max(minTopH, lastTopH - maxVariation);
+        const clampedMax = Math.min(maxTopH, lastTopH + maxVariation);
+        
+        topH = clampedMin + Math.random() * (clampedMax - clampedMin);
+    } else {
+        // Premier tuyau de la partie : position purement aléatoire
+        topH = minTopH + Math.random() * (maxTopH - minTopH);
+    }
+
     pipes.push({
         x: canvas.width + PIPE_W,
         topH,
@@ -122,16 +140,18 @@ function togglePause() {
 
 function checkCollisions() {
     const groundY = canvas.height - GROUND_H;
-    const bx = bird.x - BIRD_W * 0.35;
-    const by = bird.y - BIRD_H * 0.35;
-    const bw = BIRD_W * 0.7;
-    const bh = BIRD_H * 0.7;
+    // Hitbox réduite à 50% (au lieu de 70%) pour pardonner les frôlements des ailes
+    const bx = bird.x - BIRD_W * 0.25;
+    const by = bird.y - BIRD_H * 0.25;
+    const bw = BIRD_W * 0.5;
+    const bh = BIRD_H * 0.5;
 
     if (bird.y + BIRD_H / 2 >= groundY || bird.y - BIRD_H / 2 <= 0) return true;
 
     if (gameMode === 'classic') {
         for (const p of pipes) {
-            const px = p.x - 2, pw = PIPE_W + 4;
+            // On retire 2px de chaque côté du tuyau au lieu d'en rajouter
+            const px = p.x + 2, pw = PIPE_W - 4;
             if (bx < px + pw && bx + bw > px && by < p.topH)     return true;
             if (bx < px + pw && bx + bw > px && by + bh > p.botY) return true;
         }
@@ -341,7 +361,7 @@ function showGameOver() {
     document.getElementById('go-score').textContent  = score;
     document.getElementById('go-best').textContent   = best;
     document.getElementById('go-earned').textContent = `+${earned} 🪙`;
-    document.getElementById('go-mult').textContent   = gameMode === 'mario' ? '× 2 (MODE MARIO)' : '× 1';
+    document.getElementById('go-mult').textContent   = gameMode === 'mario' ? '× 2 (MODE RENARD)' : '× 1';
     document.getElementById('medal').textContent     = getMedal(score);
 
     const xpEl = document.getElementById('go-xp');
@@ -685,3 +705,64 @@ async function bootGame() {
 
 // Lancer le démarrage
 bootGame();
+
+// ─────────────────────────────────────────────
+// SURCHARGE DU DESSIN : TUYAUX -> CLÔTURES BLANCHES
+// ─────────────────────────────────────────────
+window.drawPipe = function(ctx, x, y, h, isTop) {
+    if (h <= 0) return;
+    ctx.save();
+    const capH = 16; // Hauteur de la pointe
+    
+    ctx.fillStyle = '#ffffff'; 
+    
+    if (isTop) {
+        ctx.fillRect(x, y, PIPE_W, h - capH);
+        ctx.beginPath();
+        ctx.moveTo(x, y + h - capH);
+        ctx.lineTo(x + PIPE_W / 2, y + h);
+        ctx.lineTo(x + PIPE_W, y + h - capH);
+        ctx.fill();
+        
+        ctx.fillStyle = '#e0e0e0';
+        ctx.fillRect(x + PIPE_W - 4, y, 4, h - capH);
+        ctx.beginPath();
+        ctx.moveTo(x + PIPE_W / 2, y + h);
+        ctx.lineTo(x + PIPE_W, y + h - capH);
+        ctx.lineTo(x + PIPE_W - 4, y + h - capH);
+        ctx.lineTo(x + PIPE_W / 2, y + h - 4);
+        ctx.fill();
+    } else {
+        ctx.fillRect(x, y + capH, PIPE_W, h - capH);
+        ctx.beginPath();
+        ctx.moveTo(x, y + capH);
+        ctx.lineTo(x + PIPE_W / 2, y);
+        ctx.lineTo(x + PIPE_W, y + capH);
+        ctx.fill();
+        
+        ctx.fillStyle = '#e0e0e0';
+        ctx.fillRect(x + PIPE_W - 4, y + capH, 4, h - capH);
+        ctx.beginPath();
+        ctx.moveTo(x + PIPE_W / 2, y);
+        ctx.lineTo(x + PIPE_W, y + capH);
+        ctx.lineTo(x + PIPE_W - 4, y + capH);
+        ctx.lineTo(x + PIPE_W / 2, y + 4);
+        ctx.fill();
+    }
+    
+    // Planches horizontales
+    ctx.fillStyle = '#ffffff';
+    if (h > 50) {
+        ctx.fillRect(x - 2, isTop ? y + h - 50 : y + 30, PIPE_W + 4, 8);
+        ctx.fillStyle = '#d0d0d0';
+        ctx.fillRect(x - 2, isTop ? y + h - 42 : y + 38, PIPE_W + 4, 2);
+    }
+    if (h > 100) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x - 2, isTop ? y + h - 100 : y + 80, PIPE_W + 4, 8);
+        ctx.fillStyle = '#d0d0d0';
+        ctx.fillRect(x - 2, isTop ? y + h - 92 : y + 88, PIPE_W + 4, 2);
+    }
+    
+    ctx.restore();
+};

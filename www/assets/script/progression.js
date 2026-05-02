@@ -22,8 +22,8 @@ const ACHIEVEMENTS = [
     { id: 'score_10',      title: 'Débutant',        desc: 'Atteins un score de 10',           xp: 30,  check: (s) => s.bestClassic >= 10 || s.bestMario >= 10 },
     { id: 'score_20',      title: 'Intermédiaire',   desc: 'Atteins un score de 20',           xp: 50,  check: (s) => s.bestClassic >= 20 || s.bestMario >= 20 },
     { id: 'score_50',      title: 'Expert',          desc: 'Atteins un score de 50',           xp: 100, check: (s) => s.bestClassic >= 50 || s.bestMario >= 50 },
-    { id: 'mario_10',      title: 'Esquiveur',       desc: 'Esquive 10 boules en mode Mario',  xp: 40,  check: (s) => s.bestMario >= 10 },
-    { id: 'mario_30',      title: 'Ninja',           desc: 'Esquive 30 boules en mode Mario',  xp: 80,  check: (s) => s.bestMario >= 30 },
+    { id: 'mario_10',      title: 'Esquiveur',       desc: 'Esquive 10 boules en mode Renard', xp: 40,  check: (s) => s.bestMario >= 10 },
+    { id: 'mario_30',      title: 'Ninja',           desc: 'Esquive 30 boules en mode Renard', xp: 80,  check: (s) => s.bestMario >= 30 },
     { id: 'games_10',      title: 'Habitué',         desc: 'Joue 10 parties',                  xp: 50,  check: (s) => s.gamesPlayed >= 10 },
     { id: 'games_50',      title: 'Accro',           desc: 'Joue 50 parties',                  xp: 100, check: (s) => s.gamesPlayed >= 50 },
     { id: 'buy_skin',      title: 'Fashionista',     desc: 'Achète un skin',                   xp: 30,  check: (s) => s.skinsOwned >= 2 },
@@ -38,8 +38,8 @@ const DAILY_POOL = [
     { id: 'd_score25',  title: 'Score 25',        desc: 'Atteins 25 points en une partie',      target: 25, type: 'score',      reward: 100 },
     { id: 'd_play3',    title: 'Joueur du jour',  desc: 'Joue 3 parties aujourd\'hui',          target: 3,  type: 'gamestoday', reward: 40  },
     { id: 'd_play5',    title: 'Entraîneur',      desc: 'Joue 5 parties aujourd\'hui',          target: 5,  type: 'gamestoday', reward: 70  },
-    { id: 'd_mario5',   title: 'Esquiveur',       desc: 'Esquive 5 boules en mode Mario',       target: 5,  type: 'marioscore', reward: 50  },
-    { id: 'd_classic5', title: 'Tuyautier',       desc: 'Passe 5 tuyaux en mode classique',     target: 5,  type: 'classicscore', reward: 50 },
+    { id: 'd_mario5',   title: 'Esquiveur',       desc: 'Esquive 5 boules en mode Renard',      target: 5,  type: 'marioscore', reward: 50  },
+    { id: 'd_classic5', title: 'Fermier',         desc: 'Passe 5 clôtures en mode classique',   target: 5,  type: 'classicscore', reward: 50 },
     { id: 'd_nodie',    title: 'Intouchable',     desc: 'Score 3 sans mourir sur le sol',       target: 3,  type: 'score',      reward: 80  },
 ];
 
