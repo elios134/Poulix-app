@@ -333,9 +333,24 @@ function drawScene() {
 // ÉCRANS DOM
 // ─────────────────────────────────────────────
 
-function showScreen(id)   { document.getElementById(id).classList.add('visible'); }
-function hideScreen(id)   { document.getElementById(id).classList.remove('visible'); }
-function updateScoreDOM() { document.getElementById('score-display').textContent = score; }
+function getEl(id) {
+    const el = document.getElementById(id);
+    if (!el) console.warn(`Poulpix: élément DOM introuvable: ${id}`);
+    return el;
+}
+function showScreen(id) {
+    const el = getEl(id);
+    if (el) el.classList.add('visible');
+}
+function hideScreen(id) {
+    const el = getEl(id);
+    if (el) el.classList.remove('visible');
+}
+function setText(id, value) {
+    const el = getEl(id);
+    if (el) el.textContent = value;
+}
+function updateScoreDOM() { setText('score-display', String(score)); }
 
 // ─────────────────────────────────────────────
 // GAME OVER
@@ -358,11 +373,11 @@ function showGameOver() {
 
     if (score > 0 && score === best && typeof SFX.newRecord === 'function') SFX.newRecord();
 
-    document.getElementById('go-score').textContent  = score;
-    document.getElementById('go-best').textContent   = best;
-    document.getElementById('go-earned').textContent = `+${earned} 🪙`;
-    document.getElementById('go-mult').textContent   = gameMode === 'mario' ? '× 2 (MODE RENARD)' : '× 1';
-    document.getElementById('medal').textContent     = getMedal(score);
+    setText('go-score', String(score));
+    setText('go-best', String(best));
+    setText('go-earned', `+${earned} 🪙`);
+    setText('go-mult', gameMode === 'mario' ? '× 2 (MODE RENARD)' : '× 1');
+    setText('medal', getMedal(score));
 
     const xpEl = document.getElementById('go-xp');
     if (xpEl && progResult) xpEl.textContent = `+${progResult.baseXP} XP`;
@@ -448,17 +463,17 @@ function startGameMode(mode) {
 // BOUTONS ET INPUTS
 // ─────────────────────────────────────────────
 
-document.getElementById('btn-play').addEventListener('click',       () => { initAudio(); goToModeSelect(); });
-document.getElementById('btn-shop').addEventListener('click',       () => { initAudio(); goToShop(); });
-document.getElementById('btn-back-shop').addEventListener('click',  goToMainMenu);
-document.getElementById('btn-back-mode').addEventListener('click',  goToMainMenu);
-document.getElementById('btn-classic').addEventListener('click',    () => startGameMode('classic'));
-document.getElementById('btn-mario').addEventListener('click',      () => startGameMode('mario'));
-document.getElementById('btn-menu').addEventListener('click',       goToMainMenu);
-document.getElementById('btn-replay').addEventListener('click',     () => { hideScreen('gameover-screen'); startGameMode(gameMode); });
-document.getElementById('btn-pause').addEventListener('click',      togglePause);
-document.getElementById('btn-resume').addEventListener('click',     togglePause);
-document.getElementById('btn-pause-menu').addEventListener('click', goToMainMenu);
+bindOptional('btn-play',       () => { initAudio(); goToModeSelect(); });
+bindOptional('btn-shop',       () => { initAudio(); goToShop(); });
+bindOptional('btn-back-shop',  goToMainMenu);
+bindOptional('btn-back-mode',  goToMainMenu);
+bindOptional('btn-classic',    () => startGameMode('classic'));
+bindOptional('btn-mario',      () => startGameMode('mario'));
+bindOptional('btn-menu',       goToMainMenu);
+bindOptional('btn-replay',     () => { hideScreen('gameover-screen'); startGameMode(gameMode); });
+bindOptional('btn-pause',      togglePause);
+bindOptional('btn-resume',     togglePause);
+bindOptional('btn-pause-menu', goToMainMenu);
 
 function bindOptional(id, fn) {
     const el = document.getElementById(id);
@@ -492,7 +507,7 @@ bindOptional('btn-lb-mario', () => {
 });
 
 // --- Actions Publicités ---
-document.getElementById('btn-revive').addEventListener('click', () => {
+bindOptional('btn-revive', () => {
     if (typeof showReviveAd === 'function') {
         showReviveAd(success => {
             if (!success) return;
@@ -515,7 +530,7 @@ document.getElementById('btn-revive').addEventListener('click', () => {
     }
 });
 
-document.getElementById('btn-double').addEventListener('click', () => {
+bindOptional('btn-double', () => {
     if (typeof showDoubleCoinsAd === 'function') {
         showDoubleCoinsAd(success => {
             if (!success) return;

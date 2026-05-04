@@ -1,5 +1,9 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
+const admobAppId =
+  process.env.ADMOB_APP_ID?.trim() ||
+  'ca-app-pub-3940256099942544~3347511713';
+
 const config: CapacitorConfig = {
   appId: 'com.poulpix',
   appName: 'Poulpix',
@@ -10,7 +14,7 @@ const config: CapacitorConfig = {
   plugins: {
     AdMob: {
       initializeForTesting: false,
-      appId: 'ca-app-pub-1547050289305054~9520542653', // ⚠️ À remplacer par l'ID avec le tilde (~)
+      appId: admobAppId,
     }
   }
 };

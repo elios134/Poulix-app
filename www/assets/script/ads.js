@@ -2,6 +2,16 @@
 // CONFIGURATION DU BRIDGE CAPACITOR
 // ─────────────────────────────────────────────────────────────────────────────
 const AdMob = window.Capacitor && window.Capacitor.Plugins ? window.Capacitor.Plugins.AdMob : null;
+const REWARD_AD_ID_FALLBACK = 'ca-app-pub-3940256099942544/5224354917';
+
+function readMetaConfig(name, fallback = '') {
+    const tag = document.querySelector(`meta[name="${name}"]`);
+    const value = tag && typeof tag.content === 'string' ? tag.content.trim() : '';
+    return value || fallback;
+}
+
+const REWARD_AD_ID = readMetaConfig('poulpix-admob-reward-id', REWARD_AD_ID_FALLBACK);
+const AD_IS_TESTING = readMetaConfig('poulpix-admob-testing', 'true') === 'true';
 
 let adLoaded = false;
 let hasRevived = false;
@@ -17,7 +27,7 @@ async function initAds() {
         await AdMob.initialize({
             requestTrackingAuthorization: true,
             testingDevices: ['EMULATOR'],
-            initializeForTesting: false, // Désactivé pour la mise en production
+            initializeForTesting: AD_IS_TESTING,
         });
 
         // --- Listeners ---
@@ -53,8 +63,8 @@ async function preloadRewardAd() {
 
     try {
         await AdMob.prepareRewardVideoAd({
-            adId: 'ca-app-pub-1547050289305054/8364297093', // ⚠️ À REMPLACER : Mettez votre véritable ID AdMob
-            isTesting: false, // Désactivé pour la mise en production
+            adId: REWARD_AD_ID,
+            isTesting: AD_IS_TESTING,
         });
     } catch (e) {
         adLoaded = false;
